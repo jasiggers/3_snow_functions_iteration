@@ -3,6 +3,13 @@ title: "Snow Data Assignment: Web Scraping, Functions, and Iteration"
 author: "Alex Siggers"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_file = 'index',
+      output_dir='./'
+    )
+  })
 ---
 
 ```{r setup, echo=FALSE, warning=FALSE, include=FALSE}
@@ -13,7 +20,7 @@ library(readxl)
 
 ```
 
-1. Extract the meteorological data URLs. Here we want you to use the `rvest` package to get the URLs for the `SASP forcing` and `SBSP_forcing` meteorological datasets.
+**1. Extract the meteorological data URLs. Here we want you to use the `rvest` package to get the URLs for the `SASP forcing` and `SBSP_forcing` meteorological datasets.**
 
 ```{r, include=FALSE}
 site_url <- 'https://snowstudies.org/archived-data/'
@@ -31,7 +38,7 @@ links
 ```
 
 
-2. Download the meteorological data. Use the `download_file` and `str_split_fixed` commands to download the data and save it in your data folder. You can use a for loop or a map function. 
+**2. Download the meteorological data. Use the `download_file` and `str_split_fixed` commands to download the data and save it in your data folder. You can use a for loop or a map function.** 
 
 ```{r, include=FALSE}
 
@@ -54,7 +61,7 @@ evaluate <- all(downloaded)
 ```
 
 
-3. Write a custom function to read in the data and append a site column to the data. 
+**3. Write a custom function to read in the data and append a site column to the data.**
 
 ```{r, include=FALSE}
 
@@ -82,7 +89,7 @@ meteor_reader <- function(file){
 
 ```
 
-4. Use the `map` function to read in both meteorological files. Display a summary of your tibble.
+**4. Use the `map` function to read in both meteorological files. Display a summary of your tibble.**
 
 ```{r, echo=FALSE, include=FALSE}
 #Reading in both files using map_dfr and previous function
@@ -98,12 +105,12 @@ as_tibble(meteor_updated)
 ```
 
 
-```{r, echo=TRUE, include=FALSE}
+```{r, echo=FALSE, include=TRUE}
 summary(meteor_updated)
 ```
 
 
-5. Make a line plot of mean temp by year by site (using the `air temp [K]` variable). Is there anything suspicious in the plot? Adjust your filtering if needed.
+**5. Make a line plot of mean temp by year by site (using the `air temp [K]` variable). Is there anything suspicious in the plot? Adjust your filtering if needed.**
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 #Creating a df of temp avgs by year and site
@@ -122,7 +129,7 @@ ggplot(plotting_data, aes(x=year, y=mean_temp, color=site)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-The temperature increases dramatically from the starting year (2003) and begins to level off & fluctuate closer to 2005. This is most likely due to the 2003 data being partial and only including winter temperatures. By filtering out 2003 and 2004, we can expect a more concise y-axis and remove outliers. 
+##The temperature increases dramatically from the starting year (2003) and begins to level off & fluctuate closer to 2005. This is most likely due to the 2003 data being partial and only including winter temperatures. By filtering out 2003 and 2004, we can expect a more concise y-axis and remove outliers. 
 
 ```{r, echo=FALSE}
 #Creating new plot w/o 2003 & 2004
@@ -135,11 +142,10 @@ ggplot(plotting_data[5:18,], aes(x=year, y=mean_temp, color=site)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-The updated graph gives a far less skewed insight into the temperature range of a seven-year span. Temperatures fluctuate between a ~3 K threshold. No more visible anomalies.
+##The updated graph gives a far less skewed insight into the temperature range of a seven-year span. Temperatures fluctuate between a ~3 K threshold. No more visible anomalies.
 
 
-6. Write a function that makes line plots of monthly average temperature at each site for a given year. Use a for loop to make these plots for 2005 to 2010. Are monthly average temperatures at the Senator Beck Study Plot ever warmer than the Snow Angel Study Plot?
-Hint: https://ggplot2.tidyverse.org/reference/print.ggplot.html
+**6. Write a function that makes line plots of monthly average temperature at each site for a given year. Use a for loop to make these plots for 2005 to 2010. Are monthly average temperatures at the Senator Beck Study Plot ever warmer than the Snow Angel Study Plot?**
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 #Creating a df of year, month, site, temp avgs (No longer necessary)
@@ -174,6 +180,35 @@ for(i in c(2005:2010)){
 
 ```
 
-Bonus: Make a plot of average daily precipitation by day of year (averaged across all available years). Color each site. 
+##The graphs display a consistently higher temperature in the Snow Angel Study Plot, although the Senator Beck Study Plot remains fairly close and mimics the curvature. The Senator Beck Study Plot is colder every year and month on average.  
+
+
+
+**Bonus: Make a plot of average daily precipitation by day of year (averaged across all available years). Color each site.**
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+daily_data = meteor_updated %>%
+  group_by(site, day) %>%
+  summarise(mean_precip = mean(precip..kg.m.2.s.1., na.rm=T))
+
+
+ggplot(daily_data, aes(x=day, y=mean_precip, color=site)) +
+  geom_line() +
+    xlab("Day of Month") +
+    ylab("Mean Precip (Kg*m2*s)") + 
+    theme_classic() +
+    ggtitle("Precip Comp by Day (All Years)") +
+    theme(legend.position=c(0.8,0.8)) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+##The average daily precipitation appears to be identical at both sites, but I could have made an error in summarizing and averaging the precipitation values. Either way, there does not appear to be any notable difference between the daily values at the two sites. 
+
+##Link to github
+[https://jasiggers.github.io/3_snow_functions_iteration/]
+(https://jasiggers.github.io/3_snow_functions_iteration/)
+
+
 
 Bonus #2: Use a function and for loop to create yearly plots of precipitation by day of year. Color each site. 
